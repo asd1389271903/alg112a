@@ -1,0 +1,56 @@
+[
+    {
+        "id": "01df022f0add075b",
+        "type": "tab",
+        "label": "hello",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e13519ccca0759a4",
+        "type": "inject",
+        "z": "01df022f0add075b",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "",
+        "payload": "{\"price\":100,\"account\":50}",
+        "payloadType": "json",
+        "x": 350,
+        "y": 200,
+        "wires": [
+            [
+                "906af32df6f6368d"
+            ]
+        ]
+    },
+    {
+        "id": "906af32df6f6368d",
+        "type": "debug",
+        "z": "01df022f0add075b",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 200,
+        "wires": []
+    }
+]
