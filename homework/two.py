@@ -21,14 +21,14 @@ def power2nb(n):
 # 方法 3：用遞迴+查表
 def power2nc(n):
     power=[None]*100
-    if n == 0:
+    if n==0:
         return 1
-    elif n == 1:
+    elif n==1:
         return 2
     elif power[n] is not None:
         return power[n]
     else:
-        power[n] = power2nc(n-1)+power2nc(n-1)
+        power[n]=power2nc(n-1)+power2nc(n-1)
         return power[n]
     # if ....
     # power2n(n-1)+power2n(n-1)
