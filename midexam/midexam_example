@@ -1,0 +1,547 @@
+#此程式皆為chatgpt生成
+# 引入必要的套件
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+# 定義數據
+X = np.array([[2], [3], [1.5], [4], [5]])  # 學習時間
+y = np.array([60, 70, 50, 80, 90])           # 考試成績
+
+# 創建一個線性回歸模型
+model = LinearRegression()
+
+# 訓練模型
+model.fit(X, y)
+
+# 預測新的數據
+new_data = np.array([[2.5]])
+predicted_score = model.predict(new_data)
+print(f"預測學習時間為 {new_data[0][0]} 小時的考試成績為：{predicted_score[0]}")
+
+# 繪製模型的預測線
+plt.scatter(X, y, color='black')
+plt.plot(X, model.predict(X), color='blue', linewidth=3)
+plt.xlabel('學習時間（小時）')
+plt.ylabel('考試成績（百分制）')
+plt.title('學習時間與考試成績的線性回歸')
+plt.show()
+
+數據集1
+| 學習時間（小時） | 考試成績（百分制） |
+|------------------|---------------------|
+|        2         |          60         |
+|        3         |          70         |
+|        1.5       |          50         |
+|        4         |          80         |
+|        5         |          90         |
+
+
+----------------------------------------------------------------------------------------------------------------
+# 引入必要的套件
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+# 生成隨機數據
+np.random.seed(42)
+
+# 50個學生的數學成績和語文成績
+math_scores = np.random.randint(50, 100, 50)
+language_scores = np.random.randint(50, 100, 50)
+
+# 結合成特徵矩陣
+X = np.array(list(zip(math_scores, language_scores)))
+
+# 繪製原始數據的散點圖
+plt.scatter(math_scores, language_scores, c='black', label='學生')
+
+plt.xlabel('數學成績')
+plt.ylabel('語文成績')
+plt.title('學生數學和語文成績散點圖')
+plt.legend()
+plt.show()
+
+
+# 創建 k-means 聚類模型（假設分為3個群體）
+kmeans = KMeans(n_clusters=3)
+
+# 訓練模型
+kmeans.fit(X)
+
+# 獲取每個學生的分群結果
+labels = kmeans.labels_
+
+# 繪製聚類結果
+plt.scatter(math_scores, language_scores, c=labels, cmap='viridis', label='學生')
+
+# 繪製聚類中心
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='red', marker='X', s=200, label='群體中心')
+
+plt.xlabel('數學成績')
+plt.ylabel('語文成績')
+plt.title('k-means 聚類結果')
+plt.legend()
+plt.show()
+----------------------------------------------------------------------------------------------------------------------
+import numpy as np
+
+# 定義簡單的格子世界環境
+class GridWorld:
+    def __init__(self, rows, cols, start):
+        self.rows = rows
+        self.cols = cols
+        self.start = start
+        self.agent_position = start
+        self.goal = (rows-1, cols-1)
+        self.obstacle = [(1, 1), (2, 2)]  # 障礙物的位置
+
+    def reset(self):
+        self.agent_position = self.start
+
+    def step(self, action):
+        # 根據代理的行動更新位置並計算獎勵
+        if action == 'up' and self.agent_position[0] > 0:
+            self.agent_position = (self.agent_position[0] - 1, self.agent_position[1])
+        elif action == 'down' and self.agent_position[0] < self.rows - 1:
+            self.agent_position = (self.agent_position[0] + 1, self.agent_position[1])
+        elif action == 'left' and self.agent_position[1] > 0:
+            self.agent_position = (self.agent_position[0], self.agent_position[1] - 1)
+        elif action == 'right' and self.agent_position[1] < self.cols - 1:
+            self.agent_position = (self.agent_position[0], self.agent_position[1] + 1)
+
+        # 計算獎勵
+        if self.agent_position == self.goal:
+            reward = 1
+            done = True
+        elif self.agent_position in self.obstacle:
+            reward = -1
+            done = False
+        else:
+            reward = 0
+            done = False
+
+        return reward, done
+
+# 定義一個簡單的Q-learning代理
+class QLearningAgent:
+    def __init__(self, actions, alpha=0.1, gamma=0.9, epsilon=0.1):
+        self.actions = actions
+        self.alpha = alpha  # 學習速率
+        self.gamma = gamma  # 折扣因子
+        self.epsilon = epsilon  # epsilon-greedy策略
+        self.q_table = {}
+
+    def get_q_value(self, state, action):
+        # 獲取Q值，如果未見過此狀態-動作對，則初始化Q值
+        if state not in self.q_table:
+            self.q_table[state] = {a: 0 for a in self.actions}
+        return self.q_table[state][action]
+
+    def choose_action(self, state):
+        # epsilon-greedy策略
+        if np.random.uniform(0, 1) < self.epsilon:
+            return np.random.choice(self.actions)
+        else:
+            q_values = [self.get_q_value(state, a) for a in self.actions]
+            return self.actions[np.argmax(q_values)]
+
+    def update_q_value(self, state, action, reward, next_state):
+        # Q值更新
+        current_q = self.get_q_value(state, action)
+        best_next_q = max([self.get_q_value(next_state, a) for a in self.actions])
+        new_q = current_q + self.alpha * (reward + self.gamma * best_next_q - current_q)
+        self.q_table[state][action] = new_q
+
+# 主循環
+def main():
+    # 初始化格子世界環境和Q-learning代理
+    env = GridWorld(rows=3, cols=3, start=(0, 0))
+    agent = QLearningAgent(actions=['up', 'down', 'left', 'right'])
+
+    # 訓練代理
+    for episode in range(1000):
+        state = env.start
+        env.reset()
+        done = False
+
+        while not done:
+            action = agent.choose_action(state)
+            reward, done = env.step(action)
+            next_state = env.agent_position
+            agent.update_q_value(state, action, reward, next_state)
+            state = next_state
+
+    # 測試代理
+    state = env.start
+    env.reset()
+    done = False
+
+    while not done:
+        action = agent.choose_action(state)
+        reward, done = env.step(action)
+        state = env.agent_position
+
+    print("最終代理的位置:", state)
+
+if __name__ == "__main__":
+    main()
+---------------------------------------------------------------------------------------------------------------------------
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# 創建一個簡單的數據集
+# 80% 的數據有標籤，20% 的數據沒有標籤
+labeled_data = [("This is a spam email", 1),
+                ("Meeting tomorrow at 10 AM", 0),
+                ("Win a free vacation", 1),
+                ("Project update attached", 0),
+                ("Claim your prize now", 1),
+                ("Coffee break at 3 PM", 0),
+                ("Important document enclosed", 0),
+                ("Get 50% off today", 1)]
+
+unlabeled_data = ["Special offer for you",
+                  "Review the attached document",
+                  "Limited time discount",
+                  "Confirmation for tomorrow's meeting",
+                  "Exclusive deal just for you"]
+
+# 分割帶有標籤的數據
+text_data, labels = zip(*labeled_data)
+
+# 使用TF-IDF向量化文本數據
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(text_data)
+
+# 分割為訓練和測試集
+X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
+
+# 使用帶有標籤的數據進行監督式學習（這裡使用邏輯回歸作為分類器）
+classifier = LogisticRegression()
+classifier.fit(X_train, y_train)
+
+# 使用未標籤的數據進行半監督式學習
+unlabeled_X = vectorizer.transform(unlabeled_data)
+predicted_labels = classifier.predict(unlabeled_X)
+
+# 將預測的標籤與未標籤數據合併
+labeled_data += list(zip(unlabeled_data, predicted_labels))
+
+# 評估模型性能
+X_all = vectorizer.transform([item[0] for item in labeled_data])
+y_all = [item[1] for item in labeled_data]
+
+y_pred = classifier.predict(X_all)
+accuracy = accuracy_score(y_all, y_pred)
+
+print("模型準確度：", accuracy)
+-------------------------------------------------------------------
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# 創建一個簡單的數據集
+# 80% 的數據有標籤，20% 的數據沒有標籤
+labeled_data = [("This is a spam email", 1),
+                ("Meeting tomorrow at 10 AM", 0),
+                ("Win a free vacation", 1),
+                ("Project update attached", 0),
+                ("Claim your prize now", 1),
+                ("Coffee break at 3 PM", 0),
+                ("Important document enclosed", 0),
+                ("Get 50% off today", 1)]
+
+unlabeled_data = ["Special offer for you",
+                  "Review the attached document",
+                  "Limited time discount",
+                  "Confirmation for tomorrow's meeting",
+                  "Exclusive deal just for you"]
+
+# 分割帶有標籤的數據
+text_data, labels = zip(*labeled_data)
+
+# 使用TF-IDF向量化文本數據
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(text_data)
+
+# 分割為訓練和測試集
+X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
+
+# 使用帶有標籤的數據進行監督式學習（這裡使用邏輯回歸作為分類器）
+classifier = LogisticRegression()
+classifier.fit(X_train, y_train)
+
+# 使用未標籤的數據進行半監督式學習
+unlabeled_X = vectorizer.transform(unlabeled_data)
+predicted_labels = classifier.predict(unlabeled_X)
+
+# 將預測的標籤與未標籤數據合併
+labeled_data += list(zip(unlabeled_data, predicted_labels))
+
+# 評估模型性能
+X_all = vectorizer.transform([item[0] for item in labeled_data])
+y_all = [item[1] for item in labeled_data]
+
+y_pred = classifier.predict(X_all)
+accuracy = accuracy_score(y_all, y_pred)
+
+print("模型準確度：", accuracy)
+-----------------------------------------------------------------------------------------------------------
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.layers import Input, Conv2D, UpSampling2D
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import backend as K
+
+# 創建自監督式學習的範例數據
+def create_self_supervised_data(data_size=1000):
+    images = np.random.random((data_size, 64, 64, 3))  # 生成隨機彩色圖片
+    mask = np.zeros_like(images)
+    
+    # 在圖片中隨機遮擋一部分
+    for i in range(data_size):
+        x = np.random.randint(0, 64-16)
+        y = np.random.randint(0, 64-16)
+        mask[i, x:x+16, y:y+16, :] = images[i, x:x+16, y:y+16, :]
+        images[i, x:x+16, y:y+16, :] = 0
+    
+    return images, mask
+
+# 創建自監督式學習的模型
+def create_self_supervised_model():
+    input_shape = (64, 64, 3)
+    
+    # 編碼器部分
+    input_image = Input(shape=input_shape)
+    encoder = Conv2D(32, (3, 3), activation='relu', padding='same')(input_image)
+    encoder = Conv2D(64, (3, 3), activation='relu', padding='same')(encoder)
+    
+    # 解碼器部分
+    decoder = Conv2D(32, (3, 3), activation='relu', padding='same')(encoder)
+    decoder_output = Conv2D(3, (3, 3), activation='sigmoid', padding='same')(decoder)
+    
+    # 創建自監督式學習模型
+    model = Model(inputs=input_image, outputs=decoder_output)
+    
+    return model
+
+# 自監督式學習訓練
+def train_self_supervised_model(model, images, masks, epochs=10, batch_size=32):
+    model.compile(optimizer=Adam(lr=0.001), loss='mean_squared_error')
+    model.fit(images, masks, epochs=epochs, batch_size=batch_size, shuffle=True)
+
+# 可視化結果
+def visualize_results(model, images):
+    # 隨機選擇一張圖片進行測試
+    idx = np.random.randint(0, len(images))
+    test_image = images[idx:idx+1]
+    masked_image = test_image.copy()
+    masked_image[:, 16:32, 16:32, :] = 0  # 將圖片的一部分遮擋
+    
+    # 預測遮擋部分
+    predicted_mask = model.predict(masked_image)
+    
+    # 可視化
+    plt.figure(figsize=(12, 6))
+    
+    plt.subplot(1, 3, 1)
+    plt.title('Original Image')
+    plt.imshow(test_image[0])
+    
+    plt.subplot(1, 3, 2)
+    plt.title('Masked Image')
+    plt.imshow(masked_image[0])
+    
+    plt.subplot(1, 3, 3)
+    plt.title('Predicted Mask')
+    plt.imshow(predicted_mask[0])
+    
+    plt.show()
+
+# 主程式
+if __name__ == "__main__":
+    # 創建自監督式學習數據
+    images, masks = create_self_supervised_data(data_size=1000)
+    
+    # 創建自監督式學習模型
+    self_supervised_model = create_self_supervised_model()
+    
+    # 訓練自監督式學習模型
+    train_self_supervised_model(self_supervised_model, images, masks, epochs=10, batch_size=32)
+    
+    # 可視化結果
+    visualize_results(self_supervised_model, images)
+-------------------------------------------------------------------------------------------------------------------------------------
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+
+# 生成具有不同分布的數據
+def generate_task_data(num_samples):
+    # 生成隨機的二次曲線
+    x = np.random.uniform(-5, 5, num_samples)
+    y = 3 * x**2 + np.random.normal(0, 2, num_samples)
+    return x.reshape(-1, 1), y.reshape(-1, 1)
+
+# 元學習模型（MAML）
+class MAMLModel(tf.keras.Model):
+    def __init__(self):
+        super(MAMLModel, self).__init__()
+        self.hidden_layer = Dense(40, activation='relu')
+        self.output_layer = Dense(1)
+
+    def call(self, inputs):
+        x = self.hidden_layer(inputs)
+        return self.output_layer(x)
+
+# MAML算法
+def maml_algorithm(model, tasks, lr_inner=0.01, epochs_inner=5, epochs_outer=1000, batch_size=10):
+    optimizer_outer = Adam(learning_rate=0.001)
+
+    for epoch_outer in range(epochs_outer):
+        task_samples_x, task_samples_y = zip(*[generate_task_data(batch_size) for _ in range(len(tasks))])
+
+        for task_idx in range(len(tasks)):
+            # 內部學習
+            model_copy = tf.keras.models.clone_model(model)
+            model_copy.set_weights(model.get_weights())
+
+            optimizer_inner = Adam(learning_rate=lr_inner)
+            model_copy.compile(optimizer=optimizer_inner, loss='mean_squared_error')
+            model_copy.fit(task_samples_x[task_idx], task_samples_y[task_idx], epochs=epochs_inner, verbose=0)
+
+            # 外部更新
+            grads = tf.gradients(model_copy(task_samples_x[task_idx]), model_copy.trainable_variables)
+            gradients = [tf.clip_by_norm(grad, 1.0) for grad in grads]
+            optimizer_outer.apply_gradients(zip(gradients, model.trainable_variables))
+
+        if epoch_outer % 100 == 0:
+            print(f"Epoch {epoch_outer}/{epochs_outer}, Loss: {model.evaluate(task_samples_x[0], task_samples_y[0], verbose=0)}")
+
+# 主程式
+if __name__ == "__main__":
+    # 創建元學習模型
+    model = MAMLModel()
+
+    # 定義不同的任務
+    tasks = [generate_task_data(10) for _ in range(5)]
+
+    # 使用MAML算法進行元學習
+    maml_algorithm(model, tasks)
+--------------------------------------------------------------------------------------------------------------------------
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.layers import Dense, Reshape, Flatten
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.datasets import mnist
+
+# 載入MNIST數據集
+(x_train, _), (_, _) = mnist.load_data()
+
+# 歸一化並展平數據
+x_train = x_train.astype('float32') / 255.0
+x_train = x_train.reshape((x_train.shape[0], 28, 28, 1))
+
+# 定義生成器模型
+def build_generator(latent_dim):
+    model = Sequential()
+    model.add(Dense(128, input_dim=latent_dim, activation='relu'))
+    model.add(Dense(784, activation='sigmoid'))
+    model.add(Reshape((28, 28, 1)))
+    return model
+
+# 定義鑑別器模型
+def build_discriminator(input_shape):
+    model = Sequential()
+    model.add(Flatten(input_shape=input_shape))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+    return model
+
+# 定義GAN模型
+def build_gan(generator, discriminator):
+    discriminator.trainable = False
+    model = Sequential()
+    model.add(generator)
+    model.add(discriminator)
+    return model
+
+# 定義訓練GAN的函數
+def train_gan(generator, discriminator, gan, x_train, latent_dim, epochs=10000, batch_size=128, sample_interval=1000):
+    half_batch = batch_size // 2
+
+    for epoch in range(epochs):
+        # 訓練鑑別器
+        idx = np.random.randint(0, x_train.shape[0], half_batch)
+        real_images = x_train[idx]
+
+        noise = np.random.normal(0, 1, (half_batch, latent_dim))
+        generated_images = generator.predict(noise)
+
+        real_labels = np.ones((half_batch, 1))
+        fake_labels = np.zeros((half_batch, 1))
+
+        d_loss_real = discriminator.train_on_batch(real_images, real_labels)
+        d_loss_fake = discriminator.train_on_batch(generated_images, fake_labels)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
+        # 訓練生成器
+        noise = np.random.normal(0, 1, (batch_size, latent_dim))
+        valid_labels = np.ones((batch_size, 1))
+
+        g_loss = gan.train_on_batch(noise, valid_labels)
+
+        # 打印訓練進度
+        if epoch % sample_interval == 0:
+            print(f"Epoch {epoch}/{epochs} [D loss: {d_loss[0]} | D accuracy: {100 * d_loss[1]}] [G loss: {g_loss}]")
+
+            # 顯示生成的圖片
+            sample_images(epoch, generator, latent_dim)
+
+# 顯示生成的圖片
+def sample_images(epoch, generator, latent_dim, rows=5, cols=5):
+    noise = np.random.normal(0, 1, (rows * cols, latent_dim))
+    generated_images = generator.predict(noise)
+
+    # 顯示生成的圖片
+    generated_images = 0.5 * generated_images + 0.5  # 將像素值重新縮放到[0, 1]範圍
+    fig, axs = plt.subplots(rows, cols)
+    cnt = 0
+
+    for i in range(rows):
+        for j in range(cols):
+            axs[i, j].imshow(generated_images[cnt, :, :, 0], cmap='gray')
+            axs[i, j].axis('off')
+            cnt += 1
+
+    plt.show()
+
+# 主程式
+if __name__ == "__main__":
+    # 定義模型和超參數
+    latent_dim = 100
+    input_shape = (28, 28, 1)
+
+    generator = build_generator(latent_dim)
+    discriminator = build_discriminator(input_shape)
+
+    optimizer = Adam(lr=0.0002, beta_1=0.5)
+    discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+    gan = build_gan(generator, discriminator)
+    gan.compile(loss='binary_crossentropy', optimizer=optimizer)
+
+    # 訓練GAN
+    train_gan(generator, discriminator, gan, x_train, latent_dim)
